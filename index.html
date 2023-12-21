@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Review/Preview 2023</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      * {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      .img-container {
+        width: 100%;
+        aspect-ratio: 1/1;
+        margin: 0 auto;
+        background: #ccc;
+        position: relative;
+      }
+
+      img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 1;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      img:not([src]) {
+        opacity: 0;
+      }
+
+      section {
+        width: 100%;
+        padding: 24px;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      h2 {
+        width: 100%;
+        display: block;
+        text-align: center;
+        margin: 12px 0;
+      }
+
+      h2:empty {
+        height: 29px;
+        width: 75%;
+        display: block;
+        background: #ccc;
+        margin: 12px auto;
+      }
+
+      input[type="radio"]::after {
+        content: attr(aria-label);
+      }
+
+      input[type="radio"] {
+        appearance: none;
+        width: 48px;
+        height: 48px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 600;
+        background: #f1f7fc;
+        cursor: pointer;
+      }
+
+      input[type="radio"]:checked {
+        background: #3384bc;
+        border-color: #114f7a;
+        color: #fff;
+      }
+
+      .rating {
+        display: grid;
+        grid-template-columns: repeat(5, max-content);
+        grid-gap: 12px;
+        margin: 0 auto;
+        width: max-content;
+      }
+
+      .rating.disabled {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
+      p {
+        font-size: 12px;
+        text-align: center;
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 12px;
+      }
+
+      button {
+        width: 100%;
+        max-width: 350px;
+        background: #3384bc;
+        border-radius: 8px;
+        appearance: none;
+        cursor: pointer;
+        color: #fff;
+        padding: 12px 24px;
+        border: 1px solid #114f7a;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 32px auto 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <div class="img-container">
+        <img alt="" />
+      </div>
+      <h2></h2>
+      <form id="rate">
+        <p>(Rate the treat on a scale of 1 to 10 where 10 is the best.)</p>
+        <div class="rating">
+          <input type="radio" name="rating" value="1" aria-label="1" />
+          <input type="radio" name="rating" value="2" aria-label="2" />
+          <input type="radio" name="rating" value="3" aria-label="3" />
+          <input type="radio" name="rating" value="4" aria-label="4" />
+          <input type="radio" name="rating" value="5" aria-label="5" />
+          <input type="radio" name="rating" value="6" aria-label="6" />
+          <input type="radio" name="rating" value="7" aria-label="7" />
+          <input type="radio" name="rating" value="8" aria-label="8" />
+          <input type="radio" name="rating" value="9" aria-label="9" />
+          <input type="radio" name="rating" value="10" aria-label="10" />
+        </div>
+        <button type="submit">Submit</button>
+      </form>
+    </section>
+  </body>
+  <script>
+    const poll = async () => {
+      const question = await fetch("/.netlify/functions/next").then((d) =>
+        d.json(),
+      );
+      const lastQuestionId = window.localStorage.getItem("last_question_id");
+      if (question.id !== lastQuestionId) {
+        document.querySelector('img').src = null;
+        window.localStorage.setItem("last_question_id", question.id);
+        document.querySelector("img").src = question.image;
+        document.querySelector("h2").textContent = question.title;
+        document.querySelector("form").dataset.formId = question.id;
+      }
+      setTimeout(poll, 1000 * 6);
+    };
+
+    (async () => {
+      poll();
+
+      if (!window.localStorage.getItem("user_id")) {
+        const res = await fetch("/.netlify/functions/user").then((d) =>
+          d.json(),
+        );
+        window.localStorage.setItem("user_id", res.user_id);
+      }
+
+      document.getElementById("rate").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const rating = document.querySelector(
+          'input[name="rating"]:checked',
+        ).value;
+        return fetch("/.netlify/functions/vote", {
+          method: "POST",
+          body: JSON.stringify({
+            user_id: window.localStorage.getItem("user_id"),
+            value: parseInt(rating, 10),
+            id: parseInt(window.localStorage.getItem("last_question_id"), 10),
+          }),
+        }).then(() => {
+          console.log("");
+        });
+      });
+    })();
+  </script>
+</html>

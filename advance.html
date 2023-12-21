@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Admin | Review/Preview 2023</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <button type="button" data-direction="previous">Previous</button>
+    <button type="button" data-direction="next">Next</button>
+  </body>
+  <script>
+    (() => {
+      document.querySelectorAll("button").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.target.disabled = true;
+          const direction = e.target.dataset.direction;
+          fetch("/.netlify/functions/advance", {
+            method: "POST",
+            body: JSON.stringify({ direction }),
+          }).then(() => {
+            e.target.disabled = false;
+          });
+        });
+      });
+    })();
+  </script>
+</html>

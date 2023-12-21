@@ -1,0 +1,17 @@
+{
+  "devDependencies": {
+    "@types/uuid": "^9.0.7",
+    "netlify-cli": "^17.10.1",
+    "prettier": "^3.1.1"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.4.1",
+    "knex": "^3.1.0",
+    "knex-serverless-mysql": "^1.1.0",
+    "serverless-mysql": "^1.5.5",
+    "uuid": "^9.0.1"
+  },
+  "scripts": {
+    "start": "netlify dev"
+  }
+}
