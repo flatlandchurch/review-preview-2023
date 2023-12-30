@@ -117,6 +117,11 @@
         margin: 32px auto 0;
         display: block;
       }
+
+      form.disabled {
+        pointer-events: none;
+        opacity: 0.5;
+      }
     </style>
   </head>
   <body>
@@ -143,24 +148,45 @@
       </form>
     </section>
   </body>
-  <script>
-    const poll = async () => {
-      const question = await fetch("/.netlify/functions/next").then((d) =>
-        d.json(),
-      );
-      const lastQuestionId = window.localStorage.getItem("last_question_id");
-      if (question.id !== lastQuestionId) {
-        document.querySelector('img').src = null;
-        window.localStorage.setItem("last_question_id", question.id);
-        document.querySelector("img").src = question.image;
-        document.querySelector("h2").textContent = question.title;
-        document.querySelector("form").dataset.formId = question.id;
-      }
-      setTimeout(poll, 1000 * 6);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      onValue,
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const app = initializeApp({
+      databaseURL: "https://move-to-the-center.firebaseio.com",
+    });
+    const db = getDatabase(app);
+    const reference = ref(db, "rp_2024");
+
+    const render = async (question) => {
+      document.querySelector("img").src = null;
+      document.querySelector('form').dataset.id = question.id;
+      document.querySelector("img").src = question.image;
+      document.querySelector("h2").textContent = question.title;
+      document.querySelector("form").dataset.formId = question.id;
     };
 
     (async () => {
-      poll();
+      // poll();
+      onValue(reference, (snapshot) => {
+        const data = snapshot.val();
+        const currentQuestion = data.items[data.current_index];
+        if (currentQuestion.id !== document.querySelector('form').dataset.id) {
+          document.querySelector('form').reset();
+          document.querySelector('form').classList.toggle('disabled');
+          document.querySelector('button').disabled = false;
+        }
+        render(currentQuestion);
+        if (data.votes[currentQuestion.id][window.localStorage.getItem("user_id")]) {
+          document.querySelector('form').classList.add('disabled');
+          document.querySelector('button').disabled = true;
+        }
+      });
 
       if (!window.localStorage.getItem("user_id")) {
         const res = await fetch("/.netlify/functions/user").then((d) =>
@@ -169,20 +195,20 @@
         window.localStorage.setItem("user_id", res.user_id);
       }
 
-      document.getElementById("rate").addEventListener("submit", (e) => {
+      document.getElementById("rate").addEventListener("submit", async (e) => {
         e.preventDefault();
         const rating = document.querySelector(
           'input[name="rating"]:checked',
         ).value;
-        return fetch("/.netlify/functions/vote", {
+        document.querySelector('form').classList.toggle('disabled');
+        document.querySelector('button').disabled = true;
+        await fetch("/.netlify/functions/vote", {
           method: "POST",
           body: JSON.stringify({
             user_id: window.localStorage.getItem("user_id"),
             value: parseInt(rating, 10),
-            id: parseInt(window.localStorage.getItem("last_question_id"), 10),
+            id: document.querySelector('form').dataset.id,
           }),
-        }).then(() => {
-          console.log("");
         });
       });
     })();

@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@netlify/functions": "^2.4.1",
+    "firebase-admin": "^12.0.0",
     "knex": "^3.1.0",
     "knex-serverless-mysql": "^1.1.0",
     "serverless-mysql": "^1.5.5",

@@ -1,22 +1,24 @@
 import { Handler, HandlerEvent } from "@netlify/functions";
-import knex from "knex";
-import knexServerlessMysql from "knex-serverless-mysql";
+import admin from "firebase-admin";
 
-const db = knex({
-  client: knexServerlessMysql,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  }),
+  databaseURL: "https://move-to-the-center.firebaseio.com",
 });
 
 const handler: Handler = async (event: HandlerEvent) => {
   const { id, value, user_id } = JSON.parse(event.body);
 
-  await db("votes").insert({
-    question_id: id,
+  const db = admin.database();
+  const ref = db.ref(`rp_2024/votes/${id}`);
+
+  await ref.child(user_id).set({
     value,
-    user_id,
+    created_at: new Date().toISOString(),
   });
 
   return {
