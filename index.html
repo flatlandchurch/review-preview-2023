@@ -178,11 +178,11 @@
         const currentQuestion = data.items[data.current_index];
         if (currentQuestion.id !== document.querySelector('form').dataset.id) {
           document.querySelector('form').reset();
-          document.querySelector('form').classList.toggle('disabled');
+          document.querySelector('form').classList.remove('disabled');
           document.querySelector('button').disabled = false;
         }
         render(currentQuestion);
-        if (data.votes[currentQuestion.id][window.localStorage.getItem("user_id")]) {
+        if (!!data.votes[currentQuestion.id][window.localStorage.getItem("user_id")]) {
           document.querySelector('form').classList.add('disabled');
           document.querySelector('button').disabled = true;
         }
