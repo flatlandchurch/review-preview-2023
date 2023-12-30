@@ -166,7 +166,7 @@
     const render = async (question) => {
       document.querySelector("img").src = null;
       document.querySelector('form').dataset.id = question.id;
-      document.querySelector("img").src = question.image;
+      document.querySelector("img").src = `/public/${question.image}`;
       document.querySelector("h2").textContent = question.title;
       document.querySelector("form").dataset.formId = question.id;
     };

@@ -65,7 +65,7 @@
 
       p.helptext span {
         -webkit-text-fill-color: #0000;
-        background: linear-gradient(249deg,#de9fee 13.76%,#c3a9fc 87.52%);
+        background: linear-gradient(249deg, #de9fee 13.76%, #c3a9fc 87.52%);
         -webkit-background-clip: text;
         background-clip: text;
         color: #c3a9fc;
@@ -73,7 +73,7 @@
 
       p.total {
         -webkit-text-fill-color: #0000;
-        background: linear-gradient(270deg,#62aad2,#6b4fbb);
+        background: linear-gradient(270deg, #62aad2, #6b4fbb);
         -webkit-background-clip: text;
         background-clip: text;
         color: #6b4fbb;
@@ -109,24 +109,24 @@
       const reference = ref(db, "rp_2024");
 
       const render = (question, votes) => {
-        const votesAsArray = Object.values(votes);
-        console.log(votesAsArray);
+        const votesAsArray = Object.values(votes || {});
 
         document.querySelector("img").src = null;
-        document.querySelector("img").src = question.image;
+        document.querySelector("img").src = `/public/${question.image}`;
         document.querySelector("h2").textContent = question.title;
         document.querySelector("p span").textContent = votesAsArray.length;
         const voteTotal = votesAsArray.reduce((a, b) => a + b.value, 0);
-        document.querySelector("p.total").textContent = (
-          voteTotal / votesAsArray.length
-        ).toFixed(1);
+        const value = voteTotal / votesAsArray.length;
+        document.querySelector("p.total").textContent = Number.isNaN(value)
+          ? 0
+          : value.toFixed(1);
       };
 
       (() => {
         onValue(reference, (snapshot) => {
           const data = snapshot.val();
           const currentQuestion = data.items[data.current_index];
-          const votes = data.votes[currentQuestion.id];
+          const votes = data.votes ? data.votes[currentQuestion.id] : {};
           render(currentQuestion, votes);
         });
       })();
